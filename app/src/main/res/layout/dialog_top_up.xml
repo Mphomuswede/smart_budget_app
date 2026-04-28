@@ -10,5 +10,136 @@
     card_view:cardBackgroundColor="#1E2430"
     app:ignore="NamespaceTypo">
 
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal">
 
+        <!-- Logo centered -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="110dp"
+            android:layout_height="110dp"
+            app:cardCornerRadius="55dp"
+            app:cardBackgroundColor="#2A3341"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:id="@+id/logoLeft"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center"
+                android:src="@drawable/smartlogo"
+                android:contentDescription="Budget Logo"
+                app:tint="#81C784" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- Current Balance container -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/currentBalanceCurrency"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="R"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="#81C784"
+                android:letterSpacing="0.1"
+                android:fontFamily="sans-serif-medium" />
+
+            <TextView
+                android:id="@+id/currentBalance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0.00"
+                android:textSize="32sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:letterSpacing="0.05"
+                android:fontFamily="monospace"
+                android:layout_marginStart="4dp" />
+
+        </LinearLayout>
+
+        <!-- Required Balance container -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/requiredBalanceCurrency"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="R"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#EF5350"
+                android:letterSpacing="0.1"
+                android:fontFamily="sans-serif-medium" />
+
+            <TextView
+                android:id="@+id/requiredBalance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0.00"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#EF5350"
+                android:letterSpacing="0.05"
+                android:fontFamily="monospace"
+                android:layout_marginStart="4dp" />
+
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/topUpAmount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter top-up amount"
+            android:inputType="numberDecimal"
+            android:layout_marginBottom="16dp"
+            android:padding="14dp"
+            android:backgroundTint="#4CAF50"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#81C784"
+            android:fontFamily="sans-serif" />
+
+        <Button
+            android:id="@+id/saveTopUpButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="SAVE"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#4CAF50"
+            android:padding="12dp"
+            android:textAllCaps="true"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/closeButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="CLOSE"
+            android:textColor="#81C784"
+            android:background="@android:color/transparent"
+            android:padding="12dp"
+            android:layout_marginTop="8dp"
+            android:textAllCaps="true"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
 </androidx.cardview.widget.CardView>
