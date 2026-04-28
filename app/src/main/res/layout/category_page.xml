@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/categoryLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="#0D1117"
+    tools:context=".category">
+
+    <!-- Back Icon -->
+    <ImageView
+        android:id="@+id/backIcon"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:src="@drawable/arrow_back"
+        android:contentDescription="Back"
+        android:onClick="back_homes"
+        app:tint="#81C784"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/titleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Category"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:layout_marginStart="12dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/backIcon"
+        app:layout_constraintBottom_toBottomOf="@id/backIcon" />
+
+    <TextView
+        android:id="@+id/totalSpendingView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Total Budgeted: R 0.00"
+        android:textSize="12sp"
+        android:textColor="#81C784"
+        android:layout_marginStart="12dp"
+        app:layout_constraintTop_toBottomOf="@id/backIcon"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="8dp" />
+
+    <!-- CardView wrapping form -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/formCard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="16dp"
+        app:cardElevation="2dp"
+        app:cardCornerRadius="16dp"
+        app:cardBackgroundColor="#1E2430"
+        app:layout_constraintTop_toBottomOf="@id/totalSpendingView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Category Name -->
+            <EditText
+                android:id="@+id/categoryName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Category Name"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#81C784"
+                android:background="#2A3341"
+                android:padding="12dp" />
+
+            <!-- Budget Money -->
+            <EditText
+                android:id="@+id/categoryBudget"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Budget Money"
+                android:inputType="numberDecimal"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#81C784"
+                android:background="#2A3341"
+                android:padding="12dp"
+                android:layout_marginTop="16dp"/>
+
+            <!-- Category Description -->
+            <EditText
+                android:id="@+id/categoryDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Category Description"
+                android:minLines="3"
+                android:inputType="textMultiLine"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#81C784"
+                android:background="#2A3341"
+                android:padding="12dp"
+                android:layout_marginTop="16dp" />
+
+            <!-- Save Button -->
+            <Button
+                android:id="@+id/saveCategoryButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="SAVE CATEGORY"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#4CAF50"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="24dp"
+                android:textStyle="bold"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Graph View (MPAndroidChart) -->
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/formCard"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="16dp"
+                android:layout_gravity="center">
+
+                <!-- BarChart -->
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/categoryChart"
+                    android:layout_width="600dp"
+                    android:layout_height="300dp"
+                    android:visibility="gone" />
+
+                <!-- PieChart -->
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/categoryPieChart"
+                    android:layout_width="300dp"
+                    android:layout_height="300dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_gravity="center"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+        </HorizontalScrollView>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
