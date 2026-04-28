@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "221808569612",
+    "project_id": "budget-as-you-go",
+    "storage_bucket": "budget-as-you-go.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:221808569612:android:0d602184bd36c88000ed29",
+        "android_client_info": {
+          "package_name": "com.example.budgetasyougo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB0scGIe2DseBb2oTM0W4JhaA1DeFn_XSQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
