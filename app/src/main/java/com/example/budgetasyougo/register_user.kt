@@ -16,6 +16,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.firestore.FirebaseFirestore
+import android.util.Patterns
 
 class register_user : AppCompatActivity() {
 
@@ -27,7 +28,15 @@ class register_user : AppCompatActivity() {
     private lateinit var passwordEditText: TextInputEditText
     private lateinit var registerButton: Button
     private lateinit var loginTextView: TextView
+    private fun isValidEmail(email: String): Boolean {
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    }
 
+    private fun isStrongPassword(password: String): Boolean {
+        val passwordPattern =
+            Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#\$%^&+=!]).{8,}$")
+        return password.matches(passwordPattern)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.register_page)
@@ -83,27 +92,44 @@ class register_user : AppCompatActivity() {
 
             var valid = true
 
+// Name Validation
             if (name.isEmpty()) {
                 nameInputLayout.error = "Name is required"
+                valid = false
+            } else if (name.length < 2) {
+                nameInputLayout.error = "Name must be at least 2 characters"
                 valid = false
             } else {
                 nameInputLayout.error = null
             }
 
+// Email Validation
             if (email.isEmpty()) {
                 emailInputLayout.error = "Email is required"
+                valid = false
+            } else if (!isValidEmail(email)) {
+                emailInputLayout.error = "Enter a valid email address"
                 valid = false
             } else {
                 emailInputLayout.error = null
             }
 
+// Password Validation
             if (password.isEmpty()) {
                 passwordInputLayout.error = "Password is required"
+                valid = false
+            } else if (!isStrongPassword(password)) {
+                passwordInputLayout.error =
+                    "Password must contain:\n" +
+                            "• 8+ characters\n" +
+                            "• Uppercase letter\n" +
+                            "• Lowercase letter\n" +
+                            "• Number\n" +
+                            "• Special character"
                 valid = false
             } else {
                 passwordInputLayout.error = null
             }
-
             if (valid) {
                 val db = FirebaseFirestore.getInstance()
                 val rootView = findViewById<View>(android.R.id.content)
