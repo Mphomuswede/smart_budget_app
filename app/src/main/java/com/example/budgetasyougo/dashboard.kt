@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.ProgressBar
 import androidx.recyclerview.widget.GridLayoutManager
 
 import com.google.android.material.snackbar.Snackbar
@@ -22,9 +23,18 @@ class dashboard : AppCompatActivity() {
 
     private lateinit var sliderView: ViewPager2
 
+    private lateinit var monthlyTotal: TextView
+    private lateinit var yearlyTotal: TextView
+    private lateinit var comparisonPercentage: TextView
+    private lateinit var comparisonProgress: ProgressBar
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.dashboard_page)
+        monthlyTotal = findViewById(R.id.monthlyTotal)
+        yearlyTotal = findViewById(R.id.yearlyTotal)
+        comparisonPercentage = findViewById(R.id.comparisonPercentage)
+        comparisonProgress = findViewById(R.id.comparisonProgress)
 
 
 
@@ -52,6 +62,8 @@ class dashboard : AppCompatActivity() {
         findViewById<TextView>(R.id.mainBudgetAmount).text = ""+balance+" ZAR"
 
 totals()
+        updateComparison()
+
         // Welcome user
         val userName = sharedPrefs.getString("name", "")
         val nameTextView: TextView = findViewById(R.id.userName)
@@ -112,6 +124,10 @@ totals()
 
     }
 
+    private fun updateComparison() {
+        TODO("Not yet implemented")
+    }
+
     fun totals(){
 
         val sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
@@ -129,6 +145,39 @@ totals()
         for (i in 0 until categoryArray.length()) {
             val obj = categoryArray.getJSONObject(i)
             totalCategoryBudget += obj.optDouble("budget", 0.0)
+        }
+        fun updateComparison() {
+
+            val sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+            val prefs = getSharedPreferences("budgetAppPrefs", Context.MODE_PRIVATE)
+
+            val userEmail = sharedPrefs.getString("email", "") ?: ""
+
+            val categoryKey = "categories_$userEmail"
+            val jsonString = prefs.getString(categoryKey, "[]") ?: "[]"
+
+            val categoryArray = JSONArray(jsonString)
+
+            var monthly = 0.0
+
+            for (i in 0 until categoryArray.length()) {
+                val obj = categoryArray.getJSONObject(i)
+                monthly += obj.optDouble("spent", 0.0)
+            }
+
+            val yearly = monthly * 12
+
+            monthlyTotal.text = "R %.2f".format(monthly)
+            yearlyTotal.text = "R %.2f".format(yearly)
+
+            val percentage =
+                if (yearly > 0) ((monthly / yearly) * 100).toInt()
+                else 0
+
+            comparisonProgress.progress = percentage
+
+            comparisonPercentage.text =
+                "Monthly spending is $percentage% of yearly spending"
         }
 
         findViewById<TextView>(R.id.spendingAmount).text =""+totalCategoryBudget+" ZAR"
