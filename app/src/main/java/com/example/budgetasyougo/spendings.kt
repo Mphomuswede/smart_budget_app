@@ -12,17 +12,14 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.github.mikephil.charting.charts.PieChart
-import com.github.mikephil.charting.data.PieData
-import com.github.mikephil.charting.data.PieDataSet
-import com.github.mikephil.charting.data.PieEntry
+import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.google.android.material.snackbar.Snackbar
 import org.json.JSONArray
-import org.json.JSONObject
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -31,10 +28,17 @@ class spendings : AppCompatActivity() {
     private lateinit var mainBudgetText: TextView
     private lateinit var availableBalanceText: TextView
     private lateinit var spendingText: TextView
-    private lateinit var recyclerView: RecyclerView
-
     private lateinit var sliderView: ViewPager2
 
+    private lateinit var searchView: SearchView
+    private lateinit var btnAll: Button
+    private lateinit var btnSpent: Button
+    private lateinit var btnRemaining: Button
+    private lateinit var btnOverBudget: Button
+
+    private var fullCategoryList = mutableListOf<CategoryData>()
+    private var filteredList = mutableListOf<CategoryData>()
+    private var currentFilter = "ALL"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,253 +47,154 @@ class spendings : AppCompatActivity() {
         mainBudgetText = findViewById(R.id.mainBudgetText)
         availableBalanceText = findViewById(R.id.availableBalanceText)
         spendingText = findViewById(R.id.spendingText)
-       // recyclerView = findViewById(R.id.categoryRecyclerView)
-        val sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
 
+        val sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         val prefs = getSharedPreferences("budgetAppPrefs", Context.MODE_PRIVATE)
+
         val userEmail = sharedPrefs.getString("email", "") ?: ""
         val balanceKey = "balance_$userEmail"
 
         val currentBalance = prefs.getFloat(balanceKey, -1f)
         val rootView = findViewById<View>(android.R.id.content)
+
         val balance = getUserBalance()
-        if (currentBalance < 0f) {
-            // first time, no budget saved yet
-            askToSetInitialBudget(balanceKey, rootView)
-        } else if (currentBalance == 0f) {
-            // balance zero, suggest topping up
+
+        if (currentBalance < 0f || currentBalance == 0f) {
             askToSetInitialBudget(balanceKey, rootView)
         } else {
-            // balance exists, just show or proceed
-            findViewById<TextView>(R.id.availableBalanceText).text = " %.2f".format(currentBalance)+" ZAR"
+            availableBalanceText.text = "%.2f ZAR".format(currentBalance)
         }
 
-        findViewById<TextView>(R.id.mainBudgetText).text = ""+balance+" ZAR"
+        mainBudgetText.text = "$balance ZAR"
 
-     totals()
+
         val pieChart = findViewById<PieChart>(R.id.categoryPieChart)
-
         showPieChart(pieChart)
-        // Set up the slider
+
         sliderView = findViewById(R.id.sliderViews)
 
-        val cardItems = listOf(
-            dashboard.CardInfo(
-                R.drawable.smart,
-                R.drawable.smartlogo,
-                "Track Spending",
-                "Tracking your spending helps you understand exactly where your money goes. By staying aware of your daily expenses, you can identify patterns, avoid unnecessary purchases, and take control of your financial future with confidence."
-            )
-            ,
-            dashboard.CardInfo(
-                R.drawable.smart,
-                R.drawable.smartlogo,
-                "Visual Budget",
-                "Visualizing your budget lets you quickly see how much you’ve spent, what remains, and where you’re heading. It makes managing money easier by turning numbers into clear insights, helping you stay on track and avoid surprises."
-            )
-            ,
-            dashboard.CardInfo(
-                R.drawable.smart,
-                R.drawable.smartlogo,
-                "Budget Game",
-                "Learn how to manage money through fun, interactive challenges. The Budget Game helps you build smart financial habits by turning real-life budgeting scenarios into engaging and rewarding experiences."
-            )
+        setupSearchAndFilters()
+        loadCategories()
 
+        val cardItems = listOf(
+            dashboard.CardInfo(R.drawable.smart, R.drawable.smartlogo, "Track Spending", "Tracking spending..."),
+            dashboard.CardInfo(R.drawable.smart, R.drawable.smartlogo, "Visual Budget", "Visualizing budget..."),
+            dashboard.CardInfo(R.drawable.smart, R.drawable.smartlogo, "Budget Game", "Learn budgeting...")
         )
 
         sliderView.adapter = SlideCardAdapter(cardItems)
     }
 
+    // ================= SEARCH + FILTER =================
 
-fun topUps(){
-    val sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+    private fun setupSearchAndFilters() {
 
-    val prefs = getSharedPreferences("budgetAppPrefs", Context.MODE_PRIVATE)
-    val userEmail = sharedPrefs.getString("email", "") ?: ""
-    val balanceKey = "balance_$userEmail"
+        searchView = findViewById(R.id.searchView)
+        btnAll = findViewById(R.id.btnAll)
+        btnSpent = findViewById(R.id.btnSpent)
+        btnRemaining = findViewById(R.id.btnRemaining)
+        btnOverBudget = findViewById(R.id.btnOverBudget)
 
-    val currentBalance = prefs.getFloat(balanceKey, -1f)
-    val rootView = findViewById<View>(android.R.id.content)
-    askToSetInitialBudget(balanceKey, rootView)
-}
-    private fun showPieChart(pieChart: PieChart) {
-        val format = NumberFormat.getCurrencyInstance(Locale("en", "ZA"))
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?) = false
 
-        val totalText = findViewById<TextView>(R.id.mainBudgetText).text.toString().replace("[^\\d.]".toRegex(), "")
-        val spentText = findViewById<TextView>(R.id.spendingText).text.toString().replace("[^\\d.]".toRegex(), "")
+            override fun onQueryTextChange(newText: String?): Boolean {
+                filterList(currentFilter, newText ?: "")
+                return true
+            }
+        })
 
-        val totalBudget = totalText.toFloatOrNull() ?: 0f
-        val spent = spentText.toFloatOrNull() ?: 0f
-        val remaining = (totalBudget - spent).coerceAtLeast(0f)
+        btnAll.setOnClickListener { filterList("ALL", searchView.query.toString()) }
+        btnSpent.setOnClickListener { filterList("SPENT", searchView.query.toString()) }
+        btnRemaining.setOnClickListener { filterList("REMAINING", searchView.query.toString()) }
+        btnOverBudget.setOnClickListener { filterList("OVER", searchView.query.toString()) }
+    }
 
-        val entries = mutableListOf<PieEntry>()
-        val colors = mutableListOf<Int>()
+    private fun loadCategories() {
 
-        if (spent > 0f) {
+        val sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        val prefs = getSharedPreferences("budgetAppPrefs", Context.MODE_PRIVATE)
+
+        val userEmail = sharedPrefs.getString("email", "") ?: ""
+        val categoryKey = "categories_$userEmail"
+
+        val json = prefs.getString(categoryKey, "[]")
+        val array = JSONArray(json)
+
+        fullCategoryList.clear()
+
+        for (i in 0 until array.length()) {
+            val obj = array.getJSONObject(i)
+
+            val title = obj.optString("title", "")
+            val budget = obj.optDouble("budget", 0.0)
+            val spent = obj.optDouble("spent", 0.0)
+
+            fullCategoryList.add(CategoryData(title, budget, spent))
+        }
+
+        filteredList = fullCategoryList.toMutableList()
+    }
+
+    private fun filterList(filter: String, searchText: String) {
+
+        currentFilter = filter
+
+        filteredList = fullCategoryList.filter {
+
+            val matchesSearch = it.title.lowercase().contains(searchText.lowercase())
+
+            val matchesFilter = when (filter) {
+                "SPENT" -> it.spent > 0
+                "REMAINING" -> it.budget > it.spent
+                "OVER" -> it.spent > it.budget
+                else -> true
+            }
+
+            matchesSearch && matchesFilter
+        }.toMutableList()
+
+        updateUI(filteredList)
+    }
+
+    private fun updateUI(list: List<CategoryData>) {
+        updatePieFromFiltered(list)
+    }
+
+    private fun updatePieFromFiltered(list: List<CategoryData>) {
+
+        val spent = list.sumOf { it.spent }.toFloat()
+        val remaining = list.sumOf { (it.budget - it.spent).coerceAtLeast(0.0) }.toFloat()
+
+        val entries = ArrayList<PieEntry>()
+        val colors = ArrayList<Int>()
+
+        if (spent > 0) {
             entries.add(PieEntry(spent, "Spent"))
             colors.add(Color.RED)
         }
 
-        if (remaining > 0f) {
+        if (remaining > 0) {
             entries.add(PieEntry(remaining, "Remaining"))
             colors.add(Color.GREEN)
         }
 
-        if (entries.isEmpty()) {
-            pieChart.clear()
-            pieChart.setNoDataText("No budget or spending data")
-            return
-        }
-
-        val dataSet = PieDataSet(entries, "Budget Breakdown").apply {
+        val dataSet = PieDataSet(entries, "Budget").apply {
             this.colors = colors
-            valueTextSize = 14f
             valueTextColor = Color.BLACK
-            valueFormatter = object : ValueFormatter() {
-                override fun getFormattedValue(value: Float): String {
-                    return format.format(value.toDouble())
-                }
-            }
+            valueTextSize = 14f
         }
 
+        val pieChart = findViewById<PieChart>(R.id.categoryPieChart)
         pieChart.data = PieData(dataSet)
-        pieChart.description.isEnabled = false
-        pieChart.setDrawHoleEnabled(true)
-        pieChart.setHoleColor(Color.YELLOW)
-        pieChart.setTransparentCircleAlpha(110)
-        pieChart.setEntryLabelColor(Color.BLACK)
-        pieChart.setUsePercentValues(false)
-        pieChart.centerText = "Total:\n${format.format(totalBudget.toDouble())}"
-        pieChart.setCenterTextSize(16f)
         pieChart.invalidate()
-        pieChart.visibility = View.VISIBLE
     }
 
 
 
-    fun totals(){
-
-        val sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-
-        val prefs = getSharedPreferences("budgetAppPrefs", Context.MODE_PRIVATE)
-        val userEmail = sharedPrefs.getString("email", "") ?: ""
-        val mainKey = "balance_$userEmail"
-
-        // Check if there's enough main budget left for this category budget
-        val mainBudget = prefs.getFloat(mainKey, -1f).toDouble()
-        val categoryKey = "categories_$userEmail"
-        val existingCategoriesJson = prefs.getString(categoryKey, "[]")
-        val categoryArray = JSONArray(existingCategoriesJson)
-        var totalCategoryBudget = 0.0
-        for (i in 0 until categoryArray.length()) {
-            val obj = categoryArray.getJSONObject(i)
-            totalCategoryBudget += obj.optDouble("budget", 0.0)
-        }
-
-        findViewById<TextView>(R.id.spendingText).text =""+totalCategoryBudget+" ZAR"
-
+    private fun showPieChart(pieChart: PieChart) {
+        pieChart.setNoDataText("Loading...")
     }
-
-
-    private fun getUserBalance(): Float {
-        val sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        val userEmail = sharedPrefs.getString("email", "") ?: ""
-        val mainSpends = getSharedPreferences("main_spends", Context.MODE_PRIVATE)
-        return mainSpends.getFloat(userEmail, 0f)
-    }
-
-    private fun initializeUserBalance(initialBalance: Float) {
-        val sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        val userEmail = sharedPrefs.getString("email", "") ?: ""
-        val mainSpends = getSharedPreferences("main_spends", Context.MODE_PRIVATE)
-
-        // Check if user has a balance
-        if (!mainSpends.contains(userEmail)) {
-            mainSpends.edit().putFloat(userEmail, initialBalance.toFloat()).apply()
-        }
-    }
-    private fun addToUserBalance(amountToAdd: Float) {
-        val sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        val userEmail = sharedPrefs.getString("email", "") ?: ""
-        val mainSpends = getSharedPreferences("main_spends", Context.MODE_PRIVATE)
-
-        val currentBalance = mainSpends.getFloat(userEmail, 0f)
-        val newBalance = currentBalance + amountToAdd
-
-        mainSpends.edit().putFloat(userEmail, newBalance).apply()
-    }
-
-    private fun askToSetInitialBudget(balanceKey: String, rootView: View) {
-        AlertDialog.Builder(this)
-            .setTitle("Set Initial Budget")
-            .setMessage("Do you want to top up now")
-            .setPositiveButton("Yes") { _, _ ->
-                // Show top-up dialog to set initial balance
-                showTopUpDialog(balanceKey, rootView)
-            }
-            .setNegativeButton("No", null)
-            .show()
-    }
-
-
-    private fun showTopUpDialog(balanceKey: String, rootView: View) {
-        val inflater = LayoutInflater.from(this)
-        val view = inflater.inflate(R.layout.dialog_top_up, null)
-
-        val currentBalanceText = view.findViewById<TextView>(R.id.currentBalance)
-        val topUpAmountField = view.findViewById<EditText>(R.id.topUpAmount)
-        val saveButton = view.findViewById<Button>(R.id.saveTopUpButton)
-        val closeButton = view.findViewById<Button>(R.id.closeButton)
-
-        // Use budgetAppPrefs here
-        val prefs = getSharedPreferences("budgetAppPrefs", Context.MODE_PRIVATE)
-        val currentBalance = prefs.getFloat(balanceKey, 0f)
-        currentBalanceText.text = " %.2f".format(currentBalance) +" ZAR"
-        initializeUserBalance(currentBalance)
-        val dialog = AlertDialog.Builder(this)
-            .setView(view)
-            .setCancelable(false)
-            .create()
-
-        saveButton.setOnClickListener {
-            val topUp = topUpAmountField.text.toString().toFloatOrNull()
-            if (topUp == null || topUp <= 0f) {
-                topUpAmountField.error = "Please enter a valid amount"
-                return@setOnClickListener
-            }
-            val newBalance = currentBalance + topUp
-            prefs.edit().putFloat(balanceKey, newBalance).apply()
-            addToUserBalance(topUp)
-            Snackbar.make(rootView, "Main budget updated to R %.2f".format(newBalance), Snackbar.LENGTH_LONG).show()
-
-            // Update dashboard balance display too
-            findViewById<TextView>(R.id.availableBalanceText).text = "%.2f".format(newBalance)+" ZAR"
-
-            val balance = getUserBalance()
-            findViewById<TextView>(R.id.availableBalanceText).text = ""+balance+" ZAR"
-
-            dialog.dismiss()
-
-            val intent = Intent(this, spendings::class.java)
-            startActivity(intent)
-            finish()
-        }
-
-        closeButton.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        dialog.show()
-    }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -299,43 +204,72 @@ fun topUps(){
         val spent: Double
     )
 
+
+    private fun getUserBalance(): Float {
+        val sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        val userEmail = sharedPrefs.getString("email", "") ?: ""
+        val mainSpends = getSharedPreferences("main_spends", Context.MODE_PRIVATE)
+        return mainSpends.getFloat(userEmail, 0f)
+    }
+
+    private fun askToSetInitialBudget(balanceKey: String, rootView: View) {
+        AlertDialog.Builder(this)
+            .setTitle("Set Initial Budget")
+            .setMessage("Do you want to top up now?")
+            .setPositiveButton("Yes") { _, _ ->
+                showTopUpDialog(balanceKey, rootView)
+            }
+            .setNegativeButton("No", null)
+            .show()
+    }
+
+    private fun showTopUpDialog(balanceKey: String, rootView: View) {
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_top_up, null)
+
+        val currentBalanceText = view.findViewById<TextView>(R.id.currentBalance)
+        val topUpAmount = view.findViewById<EditText>(R.id.topUpAmount)
+
+        val prefs = getSharedPreferences("budgetAppPrefs", Context.MODE_PRIVATE)
+        val currentBalance = prefs.getFloat(balanceKey, 0f)
+
+        currentBalanceText.text = "%.2f ZAR".format(currentBalance)
+
+        AlertDialog.Builder(this)
+            .setView(view)
+            .setCancelable(false)
+            .setPositiveButton("Save") { _, _ ->
+
+                val amount = topUpAmount.text.toString().toFloatOrNull() ?: 0f
+
+                val newBalance = currentBalance + amount
+
+                prefs.edit().putFloat(balanceKey, newBalance).apply()
+
+                Snackbar.make(rootView, "Updated: R$newBalance", Snackbar.LENGTH_LONG).show()
+
+                recreate()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+
     fun back_home(view: View) {
-
-
-        val intent = Intent(this, dashboard::class.java)
-        startActivity(intent)
+        startActivity(Intent(this, dashboard::class.java))
         finish()
     }
 
     fun tops(view: View) {
-        topUps()
-
+        askToSetInitialBudget("balance", findViewById(android.R.id.content))
     }
 
     fun clears(view: View) {
-        val sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-
         val prefs = getSharedPreferences("budgetAppPrefs", Context.MODE_PRIVATE)
-        val userEmail = sharedPrefs.getString("email", "") ?: ""
-        val mainKey = "balance_$userEmail"
-        val categoryKey = "categories_$userEmail"
-
-        // Remove both keys
-        prefs.edit()
-            .remove(mainKey)
-            .remove(categoryKey)
-            .apply()
+        prefs.edit().clear().apply()
 
         val mainSpends = getSharedPreferences("main_spends", Context.MODE_PRIVATE)
-        mainSpends.edit().remove(userEmail).apply()
+        mainSpends.edit().clear().apply()
 
-        //Toast.makeText(this, "User balance and categories cleared!", Toast.LENGTH_LONG).show()
-
-        val intent = Intent(this, spendings::class.java)
-        startActivity(intent)
-        finish()
+        recreate()
     }
-
-
-
 }
