@@ -53,7 +53,7 @@
         android:id="@+id/formCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:layout_marginBottom="16dp"
         app:cardElevation="2dp"
         app:cardCornerRadius="16dp"
@@ -66,7 +66,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="16dp">
 
             <!-- Category Name -->
             <EditText
@@ -77,20 +77,33 @@
                 android:textColor="#FFFFFF"
                 android:textColorHint="#81C784"
                 android:background="#2A3341"
-                android:padding="12dp" />
+                android:padding="10dp" />
 
-            <!-- Budget Money -->
+            <!-- Min Goal -->
             <EditText
-                android:id="@+id/categoryBudget"
+                android:id="@+id/categoryMinGoal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Budget Money"
+                android:hint="Minimum Goal (R)"
                 android:inputType="numberDecimal"
                 android:textColor="#FFFFFF"
                 android:textColorHint="#81C784"
                 android:background="#2A3341"
-                android:padding="12dp"
-                android:layout_marginTop="16dp"/>
+                android:padding="10dp"
+                android:layout_marginTop="10dp"/>
+
+            <!-- Max Goal / Budget -->
+            <EditText
+                android:id="@+id/categoryBudget"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Maximum Goal / Budget (R)"
+                android:inputType="numberDecimal"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#81C784"
+                android:background="#2A3341"
+                android:padding="10dp"
+                android:layout_marginTop="10dp"/>
 
             <!-- Category Description -->
             <EditText
@@ -98,13 +111,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Category Description"
-                android:minLines="3"
+                android:minLines="2"
                 android:inputType="textMultiLine"
                 android:textColor="#FFFFFF"
                 android:textColorHint="#81C784"
                 android:background="#2A3341"
-                android:padding="12dp"
-                android:layout_marginTop="16dp" />
+                android:padding="10dp"
+                android:layout_marginTop="10dp" />
 
             <!-- Save Button -->
             <Button
@@ -115,7 +128,7 @@
                 android:textColor="#FFFFFF"
                 android:backgroundTint="#4CAF50"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="16dp"
                 android:textStyle="bold"
                 android:textSize="14sp" />
 
@@ -126,43 +139,36 @@
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:fillViewport="true"
         app:layout_constraintTop_toBottomOf="@id/formCard"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <HorizontalScrollView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:scrollbars="none">
+            android:orientation="vertical"
+            android:paddingBottom="16dp">
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingBottom="16dp"
-                android:layout_gravity="center">
+            <!-- BarChart -->
+            <com.github.mikephil.charting.charts.BarChart
+                android:id="@+id/categoryChart"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:visibility="gone" />
 
-                <!-- BarChart -->
-                <com.github.mikephil.charting.charts.BarChart
-                    android:id="@+id/categoryChart"
-                    android:layout_width="600dp"
-                    android:layout_height="300dp"
-                    android:visibility="gone" />
+            <!-- PieChart -->
+            <com.github.mikephil.charting.charts.PieChart
+                android:id="@+id/categoryPieChart"
+                android:layout_width="250dp"
+                android:layout_height="250dp"
+                android:layout_marginTop="10dp"
+                android:layout_gravity="center"
+                android:visibility="gone" />
 
-                <!-- PieChart -->
-                <com.github.mikephil.charting.charts.PieChart
-                    android:id="@+id/categoryPieChart"
-                    android:layout_width="300dp"
-                    android:layout_height="300dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_gravity="center"
-                    android:visibility="gone" />
-
-            </LinearLayout>
-        </HorizontalScrollView>
+        </LinearLayout>
     </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

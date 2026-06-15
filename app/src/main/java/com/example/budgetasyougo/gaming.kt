@@ -9,11 +9,13 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.Calendar
 
 class gaming : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: AchievementAdapter
     private lateinit var prefs: SharedPreferences
+    private lateinit var expensePrefs: SharedPreferences
     private lateinit var categoryKey: String
     private lateinit var userEmail: String
 
@@ -25,13 +27,15 @@ class gaming : AppCompatActivity() {
         userEmail = sharedPref.getString("email", "") ?: ""
         categoryKey = "categories_$userEmail"
         prefs = getSharedPreferences("budgetAppPrefs", MODE_PRIVATE)
+        expensePrefs = getSharedPreferences("StructuredExpenses", MODE_PRIVATE)
 
         recyclerView = findViewById(R.id.achievementRecyclerView)
         recyclerView.layoutManager = GridLayoutManager(this, 2)
 
         val categories = loadCategories()
+        val expenses = loadExpenses()
 
-        val achievements = getUnlockedAchievements(categories)
+        val achievements = getUnlockedAchievements(categories, expenses)
         adapter = AchievementAdapter(achievements)
         recyclerView.adapter = adapter
     }
@@ -46,47 +50,64 @@ class gaming : AppCompatActivity() {
         return list
     }
 
-    private fun getUnlockedAchievements(categories: List<JSONObject>): List<Achievement> {
+    private fun loadExpenses(): List<JSONObject> {
+        val jsonStr = expensePrefs.getString(userEmail, "[]") ?: "[]"
+        val jsonArray = JSONArray(jsonStr)
+        val list = mutableListOf<JSONObject>()
+        for (i in 0 until jsonArray.length()) {
+            list.add(jsonArray.getJSONObject(i))
+        }
+        return list
+    }
+
+    private fun getUnlockedAchievements(categories: List<JSONObject>, expenses: List<JSONObject>): List<Achievement> {
         val unlocked = mutableListOf<Achievement>()
 
         val categoryCount = categories.size
         val totalBudget = categories.sumOf { it.optDouble("budget", 0.0) }
         val totalSpent = categories.sumOf { it.optDouble("spent", 0.0) }
+        val expenseCount = expenses.size
+
+        // Calculate unique days logged
+        val uniqueDays = expenses.map { 
+            val cal = Calendar.getInstance()
+            cal.timeInMillis = it.optLong("date", 0)
+            "${cal.get(Calendar.YEAR)}-${cal.get(Calendar.DAY_OF_YEAR)}"
+        }.distinct().size
 
         fun add(title: String, desc: String, img: Int) {
             unlocked.add(Achievement(title, desc, img))
         }
 
-        // Achievements based on number of categories
-        if (categoryCount >= 1) add("First Category", "Created your first category!", R.drawable.baa)
-        if (categoryCount >= 3) add("Triple Tracker", "You now have 3+ categories!", R.drawable.baa)
-        if (categoryCount >= 5) add("Budget Boss", "You now manage 5+ categories!", R.drawable.baa)
-        if (categoryCount >= 10) add("Planner Master", "10 categories created!", R.drawable.baa)
+        // Category Achievements
+        if (categoryCount >= 1) add("First Step", "Created your first category!", R.drawable.baa)
+        if (categoryCount >= 5) add("Budget Boss", "Managing 5+ categories!", R.drawable.baa)
 
-        // Spending Achievements
-        if (categories.any { it.optDouble("spent", 0.0) < it.optDouble("budget", 0.0) })
-            add("Smart Spender", "You spent less than budget in a category!", R.drawable.baa)
+        // Logging Achievements (Consistency)
+        if (expenseCount >= 1) add("Logged In", "Logged your first expense!", R.drawable.ic_coin)
+        if (uniqueDays >= 3) add("Habit Builder", "Logged expenses on 3 different days!", R.drawable.ic_coin)
+        if (uniqueDays >= 7) add("Consistency King", "Loggings across a full week!", R.drawable.ic_coin)
 
-        if (categories.count { it.optDouble("spent", 0.0) == 0.0 } >= 3)
-            add("Thrifty Beginner", "You haven’t spent in 3 categories!", R.drawable.baa)
+        // Performance Achievements (Meeting Goals)
+        val categoriesInGoalRange = categories.count { 
+            val spent = it.optDouble("spent", 0.0)
+            spent >= it.optDouble("minGoal", 0.0) && spent <= it.optDouble("budget", 0.0) && spent > 0
+        }
+        if (categoriesInGoalRange >= 1) {
+            add("Goal Getter", "Stayed within your goals in at least one category!", R.drawable.baa)
+        }
+        if (categoriesInGoalRange >= 3) {
+            add("Triple Threat", "Stayed within goals for 3 categories!", R.drawable.baa)
+        }
 
-        if (totalSpent < totalBudget * 0.5)
-            add("Economist", "You’ve spent less than 50% of your total budget!", R.drawable.baa)
-
-        if (totalSpent > totalBudget)
-            add("Warning Sign", "You've overspent across all categories!", R.drawable.budget)
-
-        if (categories.all { it.optDouble("spent", 0.0) <= it.optDouble("budget", 0.0) && it.optDouble("budget", 0.0) > 0 })
-            add("Perfect Planner", "All your spending is within budget!", R.drawable.baa)
-
-        if (categoryCount >= 1 && totalSpent == 0.0)
-            add("Budget Setup Complete", "You've created categories but haven't spent yet!", R.drawable.budget)
+        if (totalSpent < totalBudget && totalSpent > 0) {
+            add("Smart Saver", "Overall spending is under total budget!", R.drawable.baa)
+        }
 
         return unlocked
     }
 
     fun backing(view: View) {
-        startActivity(Intent(this, dashboard::class.java))
         finish()
     }
 
