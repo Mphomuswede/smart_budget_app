@@ -121,7 +121,7 @@ These challenges were addressed through research, debugging, iterative testing, 
 12. Screenshots
  
         
-13. Conclusion
+14. Conclusion
 The Smart Budget App successfully delivers a comprehensive personal finance management solution. The final version improves significantly upon the original prototype through stronger validation, enhanced usability, additional transaction management features, and improved reporting capabilities.
 
 The project demonstrates practical application of Android development, software architecture principles, local database management, version control, and continuous integration practices. Overall, the application meets its objectives and provides users with meaningful tools to improve financial awareness and budgeting behaviour.
@@ -132,7 +132,7 @@ Authors
 Mpho Muswede
 Reamogetse Monegi
 Funanani Ravhuhali
-Jameel Makhomo
+
 
 License
 This project is for educational purposes.
