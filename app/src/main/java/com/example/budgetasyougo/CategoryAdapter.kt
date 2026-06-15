@@ -18,7 +18,7 @@ class CategoryAdapter(
         val spent = itemView.findViewById<TextView>(R.id.categorySpent)
 
         fun bind(data: spendings.CategoryData) {
-            title.text = data.title
+            title.text = data.name
             budget.text = "Budget: R %.2f".format(data.budget)
             spent.text = "Spent: R %.2f".format(data.spent)
             itemView.setOnClickListener { onItemClick(data) }

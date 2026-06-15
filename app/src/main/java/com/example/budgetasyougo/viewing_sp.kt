@@ -7,11 +7,9 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import com.github.mikephil.charting.charts.BarChart
-import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-import com.github.mikephil.charting.formatter.ValueFormatter
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.NumberFormat
@@ -19,12 +17,11 @@ import java.util.*
 
 class viewing_sp : AppCompatActivity() {
 
-    private lateinit var pieChart: PieChart
     private lateinit var barChart: BarChart
     private lateinit var prefs: android.content.SharedPreferences
     private lateinit var categoryKey: String
     private lateinit var userEmail: String
-    private val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
+    private val currencyFormatter = NumberFormat.getCurrencyInstance(Locale("en", "ZA"))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,10 +39,9 @@ class viewing_sp : AppCompatActivity() {
         if (categories.isNotEmpty()) {
             setupBarChart(categories)
             evaluateSpending(categories)
-
         } else {
-            pieChart.clear()
             barChart.clear()
+            findViewById<TextView>(R.id.spendingFeedback).text = "No categories found. Create a category to see your spending analysis."
         }
     }
 
@@ -59,12 +55,9 @@ class viewing_sp : AppCompatActivity() {
         return list
     }
 
-
-
     private fun evaluateSpending(categories: List<JSONObject>) {
         val feedbackTextView = findViewById<TextView>(R.id.spendingFeedback)
         val builder = StringBuilder()
-        var hasOverspending = false
 
         for (category in categories) {
             val name = category.optString("name", "Unknown")
@@ -74,26 +67,16 @@ class viewing_sp : AppCompatActivity() {
             if (budget <= 0) continue
 
             val percentSpent = (spent / budget) * 100
-
             builder.append("• $name\n")
             builder.append("  Budget: ${currencyFormatter.format(budget)}\n")
             builder.append("  Spent: ${currencyFormatter.format(spent)} (${String.format("%.1f", percentSpent)}%)\n")
 
             when {
-                percentSpent >= 100 -> {
-                    builder.append("  ❌ You overspent!\n\n")
-                    hasOverspending = true
-                }
-                percentSpent >= 85 -> {
-                    builder.append("  ⚠️ Nearly reached your budget.\n\n")
-                    hasOverspending = true
-                }
-                else -> {
-                    builder.append("  ✅ Spending is under control.\n\n")
-                }
+                spent > budget -> builder.append("  ❌ Over Budget!\n\n")
+                spent >= budget * 0.9 -> builder.append("  ⚠️ Warning: Near limit\n\n")
+                else -> builder.append("  ✅ Within Budget\n\n")
             }
         }
-
         feedbackTextView.text = builder.toString().trim()
     }
 
@@ -107,53 +90,36 @@ class viewing_sp : AppCompatActivity() {
             val spent = category.optDouble("spent", 0.0).toFloat()
             val remaining = (budget - spent).coerceAtLeast(0f)
 
-            // Stacked entry: [spent, remaining]
             barEntries.add(BarEntry(index.toFloat(), floatArrayOf(spent, remaining)))
-            labels.add("$name")
+            labels.add(name)
         }
 
-        val stackedSet = BarDataSet(barEntries, "Spent vs Remaining").apply {
-            setColors(
-                Color.parseColor("#F44336"), // Spent - Red
-                Color.parseColor("#4CAF50")  // Remaining - Green
-            )
+        val stackedSet = BarDataSet(barEntries, "Spent (Red) vs Remaining (Green)").apply {
+            setColors(Color.parseColor("#EF5350"), Color.parseColor("#66BB6A"))
             stackLabels = arrayOf("Spent", "Remaining")
-            valueTextSize = 12f
             valueTextColor = Color.BLACK
-        }
-
-        val barData = BarData(stackedSet).apply {
-            barWidth = 0.5f
+            valueTextSize = 10f
         }
 
         barChart.apply {
-            data = barData
+            data = BarData(stackedSet)
             description.isEnabled = false
-            legend.isEnabled = true
-
             xAxis.apply {
                 valueFormatter = IndexAxisValueFormatter(labels)
                 position = XAxis.XAxisPosition.BOTTOM
+                textColor = Color.BLACK
                 granularity = 1f
                 setDrawGridLines(false)
-                textSize = 10f
-                labelRotationAngle = -15f
+                labelRotationAngle = -30f
             }
-
-            axisLeft.axisMinimum = 0f
+            axisLeft.textColor = Color.BLACK
             axisRight.isEnabled = false
-
-            setFitBars(true)
             animateY(1000)
             invalidate()
         }
     }
 
-
-
     fun backing(view: View) {
-        val intent = Intent(this, dashboard::class.java)
-        startActivity(intent)
         finish()
     }
 }

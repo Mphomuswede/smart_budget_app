@@ -1,7 +1,6 @@
 package com.example.budgetasyougo
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -38,7 +37,7 @@ class viewing_categories : AppCompatActivity() {
         categoryList = loadCategories()
         adapter = CategoryAdapters(categoryList, { categoryId ->
             deleteCategory(categoryId)
-        }, this, prefs,userEmail)
+        }, this, prefs, userEmail)
 
         recyclerView.adapter = adapter
 
@@ -52,9 +51,7 @@ class viewing_categories : AppCompatActivity() {
         })
 
         findViewById<ImageView>(R.id.backIcon).setOnClickListener {
-            val intent = Intent(this, dashboard::class.java)
-            startActivity(intent)
-            finish()
+            finish() // Correctly return to Dashboard
         }
     }
 

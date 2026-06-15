@@ -1,5 +1,8 @@
 package com.example.budgetasyougo
 
+import android.graphics.Color
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,5 +32,19 @@ class AchievementAdapter(private val items: List<gaming.Achievement>) :
         holder.title.text = item.title
         holder.description.text = item.description
         holder.badgeImage.setImageResource(item.imageResId)
+
+        if (item.isUnlocked) {
+            // Achievement earned: Full color
+            holder.badgeImage.clearColorFilter()
+            holder.badgeImage.alpha = 1.0f
+            holder.title.setTextColor(Color.WHITE)
+        } else {
+            // Achievement locked: Grey out and fade
+            val matrix = ColorMatrix()
+            matrix.setSaturation(0f) // Remove color
+            holder.badgeImage.colorFilter = ColorMatrixColorFilter(matrix)
+            holder.badgeImage.alpha = 0.4f
+            holder.title.setTextColor(Color.GRAY)
+        }
     }
 }

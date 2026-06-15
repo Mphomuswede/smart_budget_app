@@ -1,6 +1,5 @@
 package com.example.budgetasyougo
 
-import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
@@ -16,7 +15,6 @@ class gaming : AppCompatActivity() {
     private lateinit var adapter: AchievementAdapter
     private lateinit var prefs: SharedPreferences
     private lateinit var expensePrefs: SharedPreferences
-    private lateinit var categoryKey: String
     private lateinit var userEmail: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,7 +23,6 @@ class gaming : AppCompatActivity() {
 
         val sharedPref = getSharedPreferences("UserPrefs", MODE_PRIVATE)
         userEmail = sharedPref.getString("email", "") ?: ""
-        categoryKey = "categories_$userEmail"
         prefs = getSharedPreferences("budgetAppPrefs", MODE_PRIVATE)
         expensePrefs = getSharedPreferences("StructuredExpenses", MODE_PRIVATE)
 
@@ -35,13 +32,13 @@ class gaming : AppCompatActivity() {
         val categories = loadCategories()
         val expenses = loadExpenses()
 
-        val achievements = getUnlockedAchievements(categories, expenses)
+        val achievements = getAllAchievements(categories, expenses)
         adapter = AchievementAdapter(achievements)
         recyclerView.adapter = adapter
     }
 
     private fun loadCategories(): List<JSONObject> {
-        val jsonStr = prefs.getString(categoryKey, "[]") ?: "[]"
+        val jsonStr = prefs.getString("categories_$userEmail", "[]") ?: "[]"
         val jsonArray = JSONArray(jsonStr)
         val list = mutableListOf<JSONObject>()
         for (i in 0 until jsonArray.length()) {
@@ -60,60 +57,46 @@ class gaming : AppCompatActivity() {
         return list
     }
 
-    private fun getUnlockedAchievements(categories: List<JSONObject>, expenses: List<JSONObject>): List<Achievement> {
-        val unlocked = mutableListOf<Achievement>()
+    private fun getAllAchievements(categories: List<JSONObject>, expenses: List<JSONObject>): List<Achievement> {
+        val allPossible = mutableListOf<Achievement>()
 
         val categoryCount = categories.size
         val totalBudget = categories.sumOf { it.optDouble("budget", 0.0) }
         val totalSpent = categories.sumOf { it.optDouble("spent", 0.0) }
         val expenseCount = expenses.size
-
-        // Calculate unique days logged
         val uniqueDays = expenses.map { 
             val cal = Calendar.getInstance()
             cal.timeInMillis = it.optLong("date", 0)
             "${cal.get(Calendar.YEAR)}-${cal.get(Calendar.DAY_OF_YEAR)}"
         }.distinct().size
 
-        fun add(title: String, desc: String, img: Int) {
-            unlocked.add(Achievement(title, desc, img))
+        // Define all possible achievements and check if they are unlocked
+        allPossible.add(Achievement("First Step", "Create your first category!", R.drawable.baa, categoryCount >= 1))
+        allPossible.add(Achievement("Budget Boss", "Manage 5+ categories!", R.drawable.baa, categoryCount >= 5))
+        allPossible.add(Achievement("Logged In", "Log your first expense!", R.drawable.ic_coin, expenseCount >= 1))
+        allPossible.add(Achievement("Habit Builder", "Log expenses on 3 different days!", R.drawable.ic_coin, uniqueDays >= 3))
+        allPossible.add(Achievement("Consistency King", "Log across a full week!", R.drawable.ic_coin, uniqueDays >= 7))
+        
+        val inGoal = categories.count { 
+            val s = it.optDouble("spent", 0.0)
+            s >= it.optDouble("minGoal", 0.0) && s <= it.optDouble("budget", 0.0) && s > 0
         }
+        allPossible.add(Achievement("Goal Getter", "Stay within goals in a category!", R.drawable.baa, inGoal >= 1))
+        allPossible.add(Achievement("Smart Saver", "Stay under total budget!", R.drawable.baa, totalSpent < totalBudget && totalSpent > 0))
 
-        // Category Achievements
-        if (categoryCount >= 1) add("First Step", "Created your first category!", R.drawable.baa)
-        if (categoryCount >= 5) add("Budget Boss", "Managing 5+ categories!", R.drawable.baa)
-
-        // Logging Achievements (Consistency)
-        if (expenseCount >= 1) add("Logged In", "Logged your first expense!", R.drawable.ic_coin)
-        if (uniqueDays >= 3) add("Habit Builder", "Logged expenses on 3 different days!", R.drawable.ic_coin)
-        if (uniqueDays >= 7) add("Consistency King", "Loggings across a full week!", R.drawable.ic_coin)
-
-        // Performance Achievements (Meeting Goals)
-        val categoriesInGoalRange = categories.count { 
-            val spent = it.optDouble("spent", 0.0)
-            spent >= it.optDouble("minGoal", 0.0) && spent <= it.optDouble("budget", 0.0) && spent > 0
-        }
-        if (categoriesInGoalRange >= 1) {
-            add("Goal Getter", "Stayed within your goals in at least one category!", R.drawable.baa)
-        }
-        if (categoriesInGoalRange >= 3) {
-            add("Triple Threat", "Stayed within goals for 3 categories!", R.drawable.baa)
-        }
-
-        if (totalSpent < totalBudget && totalSpent > 0) {
-            add("Smart Saver", "Overall spending is under total budget!", R.drawable.baa)
-        }
-
-        return unlocked
+        return allPossible
     }
 
     fun backing(view: View) {
-        finish()
+        finish() // Returns to Dashboard
     }
 
     data class Achievement(
         val title: String,
         val description: String,
-        val imageResId: Int
+        val imageResId: Int,
+        val isUnlocked: Boolean
+
+
     )
 }

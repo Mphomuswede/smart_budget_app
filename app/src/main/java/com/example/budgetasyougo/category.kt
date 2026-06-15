@@ -19,7 +19,6 @@ import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.ValueFormatter
-import com.github.mikephil.charting.utils.ColorTemplate
 import com.google.android.material.snackbar.Snackbar
 import org.json.JSONArray
 import org.json.JSONObject
@@ -40,7 +39,7 @@ class category : AppCompatActivity() {
 
         prefs = getSharedPreferences("budgetAppPrefs", Context.MODE_PRIVATE)
         sharedPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        userEmail = sharedPref.getString("email", "") ?: "non"
+        userEmail = sharedPref.getString("email", "") ?: ""
 
         val nameField = findViewById<EditText>(R.id.categoryName)
         val descField = findViewById<EditText>(R.id.categoryDescription)
@@ -194,7 +193,6 @@ class category : AppCompatActivity() {
     }
 
     fun back_homes(view: View) {
-        startActivity(Intent(this, dashboard::class.java))
-        finish()
+        finish() // CORRECT: Just finish to go back to Dashboard
     }
 }

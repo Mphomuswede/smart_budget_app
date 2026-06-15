@@ -13,7 +13,6 @@ class greeting : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.greeting_page)
 
-
         val sharedPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         val userName = sharedPref.getString("name", "User")
 
@@ -27,12 +26,10 @@ class greeting : AppCompatActivity() {
         }
 
         welcomeTextView.text = "$greeting, $userName!"
-
     }
 
     fun opens(view: View) {
-
         startActivity(Intent(this, dashboard::class.java))
-
+        finish() // Ensure greeting screen is removed from the back stack
     }
 }

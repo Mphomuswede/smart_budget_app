@@ -28,7 +28,7 @@ class dashboard : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.dashboard_page)
-
+        
         monthlyTotal = findViewById(R.id.monthlyTotal)
         yearlyTotal = findViewById(R.id.yearlyTotal)
         comparisonPercentage = findViewById(R.id.comparisonPercentage)
@@ -42,7 +42,7 @@ class dashboard : AppCompatActivity() {
         val currentBalance = prefs.getFloat(balanceKey, -1f)
         val rootView = findViewById<View>(android.R.id.content)
         val balance = getUserBalance()
-
+        
         if (currentBalance < 0f) {
             askToSetInitialBudget(balanceKey, rootView)
         } else if (currentBalance == 0f) {
@@ -105,6 +105,19 @@ class dashboard : AppCompatActivity() {
         findViewById<TextView>(R.id.gamins).text = "Rewards " + progress
     }
 
+    override fun onResume() {
+        super.onResume()
+        totals()
+        updateComparison()
+        
+        // Refresh rewards progress
+        val categories = loadCategories()
+        val (_, unlockedCount) = getUnlockedAchievements(categories)
+        val totalAchievements = 10
+        val progress = "$unlockedCount/$totalAchievements"
+        findViewById<TextView>(R.id.gamins).text = "Rewards " + progress
+    }
+
     private fun updateComparison() {
         val sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         val prefs = getSharedPreferences("budgetAppPrefs", Context.MODE_PRIVATE)
@@ -133,7 +146,7 @@ class dashboard : AppCompatActivity() {
         val sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         val prefs = getSharedPreferences("budgetAppPrefs", Context.MODE_PRIVATE)
         val userEmail = sharedPrefs.getString("email", "") ?: ""
-
+        
         val categoryKey = "categories_$userEmail"
         val existingCategoriesJson = prefs.getString(categoryKey, "[]")
         val categoryArray = JSONArray(existingCategoriesJson)
@@ -170,7 +183,14 @@ class dashboard : AppCompatActivity() {
         val totalSpent = categories.sumOf { it.optDouble("spent", 0.0) }
 
         fun add(title: String, desc: String, img: Int) {
-            unlocked.add(gaming.Achievement(title, desc, img))
+            unlocked.add(
+                gaming.Achievement(
+                    title,
+                    desc,
+                    img,
+                    true
+                )
+            )
             counting++
         }
 
@@ -281,7 +301,7 @@ class dashboard : AppCompatActivity() {
         val currentBalance = prefs.getFloat(balanceKey, 0f)
         currentBalanceText.text = " %.2f".format(currentBalance) + " ZAR"
         initializeUserBalance(currentBalance)
-
+        
         val dialog = AlertDialog.Builder(this)
             .setView(view)
             .setCancelable(false)
@@ -319,37 +339,31 @@ class dashboard : AppCompatActivity() {
     fun SHowtotal(view: View) {
         val intent = Intent(this, spendings::class.java)
         startActivity(intent)
-        finish()
     }
 
     fun adds(view: View) {
         val intent = Intent(this, addings::class.java)
         startActivity(intent)
-        finish()
     }
 
     fun viewing(view: View) {
         val intent = Intent(this, viewing_categories::class.java)
         startActivity(intent)
-        finish()
     }
 
     fun vs_view(view: View) {
         val intent = Intent(this, viewing_vs::class.java)
         startActivity(intent)
-        finish()
     }
 
     fun spendings(view: View) {
         val intent = Intent(this, viewing_sp::class.java)
         startActivity(intent)
-        finish()
     }
 
     fun Gmaings(view: View) {
         val intent = Intent(this, gaming::class.java)
         startActivity(intent)
-        finish()
     }
 
     fun logout(view: View) {

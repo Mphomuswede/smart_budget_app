@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
@@ -12,17 +11,9 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
-import java.text.SimpleDateFormat
-import java.util.*
-import com.github.mikephil.charting.charts.PieChart
-import com.github.mikephil.charting.data.PieData
-import com.github.mikephil.charting.data.PieDataSet
-import com.github.mikephil.charting.data.PieEntry
-import android.graphics.Color
 
 
 class addings : AppCompatActivity() {
@@ -37,14 +28,13 @@ class addings : AppCompatActivity() {
         val expenseName = findViewById<EditText>(R.id.expenseName)
         val description = findViewById<EditText>(R.id.description)
         val minAmount = findViewById<EditText>(R.id.minAmount)
-        val maxAmount = findViewById<EditText>(R.id.maxAmount)
-        val takePhotoButton = findViewById<Button>(R.id.takePhotoButton)
+        val  takePhotoButton = findViewById<Button>(R.id.takePhotoButton)
         val photoPreview = findViewById<ImageView>(R.id.photoPreview)
         val saveButton = findViewById<Button>(R.id.saveButton)
 
-        val prefs = getSharedPreferences("budgetAppPrefs", Context.MODE_PRIVATE)
         val sharedPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        val userEmail = sharedPref.getString("email", "") ?: "non"
+        val userEmail = sharedPref.getString("email", "") ?: ""
+        val prefs = getSharedPreferences("budgetAppPrefs", Context.MODE_PRIVATE)
 
         val categoryKey = "categories_$userEmail"
         val existingCategoriesJson = prefs.getString(categoryKey, "[]")
@@ -73,9 +63,7 @@ class addings : AppCompatActivity() {
 
             val selectedCategory = spinner?.selectedItem?.toString() ?: ""
             val name = expenseName.text.toString().trim()
-            val desc = description.text.toString().trim()
             val minStr = minAmount.text.toString().trim()
-            val maxStr = maxAmount.text.toString().trim()
             var isValid = true
 
             if (selectedCategory.isEmpty()) {
@@ -98,6 +86,7 @@ class addings : AppCompatActivity() {
             if (!isValid) return@setOnClickListener
 
             // Update category spent
+            var categoryFound = false
             for (i in 0 until categoryArray.length()) {
                 val obj = categoryArray.getJSONObject(i)
                 if (obj.optString("name") == selectedCategory) {
@@ -110,33 +99,38 @@ class addings : AppCompatActivity() {
                     }
 
                     obj.put("spent", spent + totalSum)
+                    categoryFound = true
                     break
                 }
             }
-            prefs.edit().putString(categoryKey, categoryArray.toString()).apply()
+            
+            if (categoryFound) {
+                prefs.edit().putString(categoryKey, categoryArray.toString()).apply()
 
-            // Save structured expense
-            val expensePrefs = getSharedPreferences("StructuredExpenses", Context.MODE_PRIVATE)
-            val expensesJson = expensePrefs.getString(userEmail, "[]")
-            val expensesArray = JSONArray(expensesJson)
+                // Save structured expense
+                val expensePrefs = getSharedPreferences("StructuredExpenses", Context.MODE_PRIVATE)
+                val expensesJson = expensePrefs.getString(userEmail, "[]")
+                val expensesArray = JSONArray(expensesJson)
 
-            val newExpense = JSONObject().apply {
-                put("category", selectedCategory)
-                put("name", name)
-                put("amount", totalSum)
-                put("date", System.currentTimeMillis())
-                put("imagePath", imagePath ?: "")
+                val newExpense = JSONObject().apply {
+                    put("category", selectedCategory)
+                    put("name", name)
+                    put("amount", totalSum)
+                    put("date", System.currentTimeMillis())
+                    put("imagePath", imagePath ?: "")
+                }
+                expensesArray.put(newExpense)
+                expensePrefs.edit().putString(userEmail, expensesArray.toString()).apply()
+
+                Snackbar.make(rootLayout, "Expense saved", Snackbar.LENGTH_SHORT).show()
+
+                // Reset UI
+                expenseName.text.clear()
+                minAmount.text.clear()
+                description.text.clear()
+                photoPreview.visibility = View.GONE
+                imagePath = null
             }
-            expensesArray.put(newExpense)
-            expensePrefs.edit().putString(userEmail, expensesArray.toString()).apply()
-
-            Snackbar.make(rootLayout, "Expense saved", Snackbar.LENGTH_SHORT).show()
-
-            // Reset UI
-            expenseName.text.clear()
-            minAmount.text.clear()
-            description.text.clear()
-            photoPreview.visibility = View.GONE
         }
     }
 
@@ -157,7 +151,6 @@ class addings : AppCompatActivity() {
     }
 
     fun backfrom(view: View) {
-        startActivity(Intent(this, dashboard::class.java))
-        finish()
+        finish() // Correctly return to Dashboard
     }
 }
