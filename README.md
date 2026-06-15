@@ -1,145 +1,131 @@
-SmartBudget Tracker
+1. Introduction
+The Smart Budget App is a mobile financial management application developed using Kotlin in Android Studio. The application enables users to record expenses, set budget goals, analyse spending patterns, and monitor financial performance through visual reports and gamification features.
 
-Overview
-SmartBudget Tracker is a mobile application designed to help users manage their personal finances effectively. The application was inspired by research conducted on three popular budgeting applications: YNAB, Mint, and Spendee.
-The research focused on analysing how these applications support users in tracking expenses, managing budgets, improving financial habits, and staying motivated. SmartBudget Tracker combines the strengths of these applications while addressing common limitations such as complexity, privacy concerns, and restricted premium The application aims to provide a secure, user-friendly, visually engaging, and motivating experience for users of all financial backgrounds.
+The purpose of the application is to help users gain better control over their finances by providing meaningful insights into spending behaviour and encouraging responsible budgeting habits.
+ 
+2. Problem Statement
+Many individuals struggle to manage their personal finances effectively due to a lack of visibility into their spending habits. Without consistent expense tracking, it becomes difficult to identify overspending, achieve savings goals, and make informed financial decisions.
 
-App Concept
-The SmartBudget Tracker app is designed to help users:
-•	Track daily expenses
-•	Create and manage budgets
-•	Monitor savings goals
-•	View financial insights using charts and graphs
-•	Receive reminders and spending alerts
-•	Stay motivated through gamification features
+The Smart Budget App addresses this challenge by providing users with an accessible platform for recording transactions, analysing spending patterns, and evaluating performance against predefined budget goals.
 
-Features
-1. User Registration and Login
-Users can securely create accounts and log into the application.
-Functionality
-•	Username and email registration
-•	Password authentication
-•	Secure user access
-Purpose
-Protects user financial information and personalises the application experience.
- 
-2. Expense Tracking System
-Users can record daily expenses.
-Information Captured
-•	Amount
-•	Date
-•	Category
-•	Description
-Purpose
-Helps users understand spending habits and improve financial awareness.
- 
+3. Project Objectives
+• Provide a simple and intuitive interface for recording daily expenses.
+• Enable users to categorise and review spending habits over time.
+• Allow users to set minimum and maximum budget goals.
+• Present spending data visually through graphs and reports.
+• Encourage consistent financial tracking through gamification rewards and achievements.
 
+4. Prototype Review and Improvements
+The prototype established the core functionality of the application, including expense recording, budget goal creation, and transaction viewing.
 
-3. Expense Categorisation
-Users can create and manage expense categories.
-Example Categories
-•	Groceries
-•	Transport
-•	Entertainment
-•	Utilities
-•	Savings
-Purpose
-Improves spending analysis and budgeting accuracy.
+Based on lecturer feedback, the registration process was enhanced through email and password validation. Invalid email formats are now rejected, password strength requirements are enforced, and descriptive validation messages provide immediate feedback to users. These improvements significantly strengthen application security and usability.
 
- 
+5. System Design
+The application follows a layered architecture consisting of:
 
+Presentation Layer: Activities, Fragments, and XML layouts responsible for user interaction.
 
-4. Budget Setting
-Users can set monthly budgets for each category.
-Purpose
-Encourages proactive financial planning and prevents overspending.
-Inspiration
-Based on the zero-based budgeting approach used in YNAB.
+Business Logic Layer: Handles expense calculations, budget comparisons, search functionality, and validation rules.
 
-5. Visual Financial Reports
-The application generates financial insights using graphs and charts.
-Visual Reports Include
-•	Pie charts
-•	Bar graphs
-•	Spending trends
-•	Category analysis
-Purpose
-Makes financial data easier to understand and more engaging for users.
+Data Layer: Uses Room Database, DAOs, and Entity classes to manage persistent storage and data retrieval.
 
+Technology Stack:
+• Kotlin
+• Android Studio
+• Room Database
+• XML
+• GitHub
+• GitHub Actions
+ 
+6. Application Features
+Expense Management
+• Add, view, and categorise expenses.
+• Store transaction dates for reporting purposes.
 
- 
+Search and Filter Functionality
+• Search transactions by description.
+• Filter transactions by category.
+• Combine search and filter criteria.
 
-5. Receipt Upload Feature
-Users can upload receipt images when recording expenses.
-Purpose
-•	Keeps records organised
-•	Provides proof of transactions
-•	Improves budgeting accuracy
+Edit and Delete Transactions
+• Update transaction details.
+• Remove incorrect records.
 
-6. Gamification Features
-The application includes:
-•	Achievement badges
-•	Rewards
-•	Progress tracking
-•	Financial milestones
-Purpose
-Improves motivation and long-term engagement.
- 
-7. Data Security
-All user data is stored locally on the device.
-Purpose
-•	Improves privacy
-•	Reduces risks associated with online banking integrations
-•	Gives users greater control over their information
+Budget Comparison
+• Compare monthly and yearly spending trends.
 
-Technology Stack
-Frontend
-•	Android Studio
-•	Kotlin / Java
-•	XML Layouts
-Backend
-•	Local Storage
-•	SQLite Database
-Additional Tools
-•	GitHub for version control
-•	Firebase (optional future enhancement)
+Spending Graphs
+• Visualise spending by category and time period.
 
-User Interface Design
-The application will focus on:
-•	Simple navigation
-•	Clean layouts
-•	Easy-to-read financial information
-•	Modern visual design
-•	Accessibility for beginner users
+Budget Goal Tracking
+• Monitor spending against minimum and maximum targets.
 
-Target Users
-SmartBudget Tracker is designed for:
-•	Students
-•	Young professionals
-•	Families
-•	Individuals wanting better financial control
+Gamification
+• Earn badges and rewards for maintaining positive financial habits.
 
-Future Improvements
-Possible future enhancements include:
-•	Cloud backup
-•	Multi-device synchronisation
-•	AI spending insights
-•	Bank account integration
-•	Dark mode support
-•	Advanced analytics
+7. User Interface Design
+The user interface was designed according to four principles:
+
+Simplicity: Screens remain uncluttered and task-focused.
+
+Consistency: Typography, colours, and controls remain uniform throughout the application.
+
+Ease of Navigation: Users can move between sections with minimal effort.
+
+Clear Information Presentation: Graphs, reports, and badges improve readability and understanding.
+
+8. Testing
+Functional testing was conducted on all major application features.
+
+Test Cases:
+• Add Transaction – Passed
+• Edit Transaction – Passed
+• Delete Transaction – Passed
+• Search Transaction – Passed
+• Filter Transaction – Passed
+• Budget Calculation – Passed
+
+Automated tests were also implemented to verify database operations, business logic, and calculation accuracy.
+
+9. Version Control and Continuous Integration
+GitHub was used to manage source code, track changes, and maintain project history.
+
+GitHub Actions was configured to:
+• Build the application automatically.
+• Execute automated tests.
+• Detect integration issues early.
+
+This ensured that the application remained stable and deployable throughout development.
+
+10. Installation and Demonstration
+Installation Process:
+1. Download the APK file.
+2. Install the APK on an Android device.
+3. Launch the Smart Budget App.
+
+Demonstration materials should include:
+• Application walkthrough.
+• Expense management features.
+• Search and filter functionality.
+• Budget tracking and reporting.
+• Gamification features.
+
+Add GitHub repository and demonstration video links before final submission.
+
+11. Challenges Encountered
+Key challenges included database integration, graph visualisation, user interface design, testing on physical devices, and configuring GitHub Actions.
+
+These challenges were addressed through research, debugging, iterative testing, and continuous refinement of the application.
 
 
-Project Goals
-The main goal of SmartBudget Tracker is to:
-•	Help users manage money effectively
-•	Encourage responsible financial habits
-•	Simplify budgeting
-•	Improve financial awareness
-•	Make personal finance management engaging and motivating
+12. Screenshots
+ 
+        
+13. Conclusion
+The Smart Budget App successfully delivers a comprehensive personal finance management solution. The final version improves significantly upon the original prototype through stronger validation, enhanced usability, additional transaction management features, and improved reporting capabilities.
 
-Conclusion
-SmartBudget Tracker combines the best features from YNAB, Mint, and Spendee while addressing their limitations. The application focuses on simplicity, privacy, financial discipline, and user engagement to create an effective budgeting experience for all users.
-
+The project demonstrates practical application of Android development, software architecture principles, local database management, version control, and continuous integration practices. Overall, the application meets its objectives and provides users with meaningful tools to improve financial awareness and budgeting behaviour.
+<img width="451" height="172" alt="image" src="https://github.com/user-attachments/assets/923c7b63-0f4c-482e-ac32-130cc84ae07c" />
 
 
 Authors
@@ -152,4 +138,4 @@ License
 This project is for educational purposes.
 
 YouTube Link
-https://youtu.be/Ik27FjDYpp0?si=afgARDV8lSjbH9-T
+
